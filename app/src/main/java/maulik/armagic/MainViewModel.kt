@@ -1,6 +1,8 @@
 package maulik.armagic
 
 import android.app.Application
+import android.view.LayoutInflater
+import android.widget.ImageView
 import androidx.annotation.DrawableRes
 import androidx.annotation.RawRes
 import androidx.lifecycle.AndroidViewModel
@@ -17,22 +19,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun createModels() {
-        createModel("Sofa", R.drawable.sofa, R.raw.sofa, ScaleOptions(true))
-        createModel("Chair", R.drawable.chair, R.raw.chair, ScaleOptions(false, 0.1f, 0.3f))
-        createViewRenderable()
+//        createModel("Sofa", R.drawable.sofa, R.raw.sofa, ScaleOptions(true))
+//        createModel("Chair", R.drawable.chair, R.raw.chair, ScaleOptions(false, 0.1f, 0.3f))
+        createViewRenderable("Wood", R.drawable.wood)
+        createViewRenderable("Ocean", R.drawable.texture2)
+        createViewRenderable("Garden", R.drawable.garden)
+        createViewRenderable("Roses", R.drawable.roses)
     }
 
-    private fun createViewRenderable() {
-        ViewRenderable.builder().setView(getApplication(), R.layout.texture_view)
+    private fun createViewRenderable(name: String, drawable: Int) {
+
+        val view = LayoutInflater.from(getApplication()).inflate(R.layout.texture_view, null)
+        view.findViewById<ImageView>(R.id.iv_texture).setImageResource(drawable)
+
+        ViewRenderable.builder().setView(getApplication(), view)
             .setVerticalAlignment(ViewRenderable.VerticalAlignment.CENTER)
             .build()
             .thenAccept { modelRenderable ->
                 val arModel = ArModel(
-                    "Texture",
-                    R.drawable.wood,
-                    R.raw.sofa,
+                    name,
+                    drawable,
+                    drawable,
                     modelRenderable,
-                    ScaleOptions(true)
+                    ScaleOptions(true, 0.1f, 0.5f)
                 )
                 if (arModelSet.value != null) {
                     arModelSet.value?.add(arModel)

@@ -2,6 +2,8 @@ package maulik.armagic
 
 import android.os.Bundle
 import android.util.Log
+import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -13,6 +15,7 @@ import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
+import com.google.ar.sceneform.rendering.ViewRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
 import maulik.armagic.databinding.ActivityMainBinding
@@ -27,6 +30,8 @@ class MainActivity : AppCompatActivity() {
     private val adapter: ModelSelectionAdapter = ModelSelectionAdapter {
         selectModelAndRefreshList(it)
     }
+    private var currentTransformableNode: TransformableNode? = null
+    private var intermediateNode: Node? = null
 
     private fun selectModelAndRefreshList(arModel: ArModel) {
         selectedArModel = arModel
@@ -61,25 +66,32 @@ class MainActivity : AppCompatActivity() {
             val anchorNode = AnchorNode(anchor)
             anchorNode.setParent(arFragment.arSceneView.scene)
 
-         /*   val intermediateNode = Node()
-            intermediateNode.setParent(anchorNode)
+            intermediateNode = AnchorNode()
+            intermediateNode?.setParent(anchorNode)
             val anchorUp = anchorNode.up
-            intermediateNode.setLookDirection(Vector3.up(), anchorUp)*/
+            intermediateNode?.setLookDirection(Vector3.up(), anchorUp)
 
-
-            // Create the transformable model and add it to the anchor.
-            val model = TransformableNode(arFragment.transformationSystem)
-            if (selectedArModel?.scaleOptions?.freeScaling == false) {
-                model.scaleController.minScale = selectedArModel?.scaleOptions?.minScale ?: 0.1f
-                model.scaleController.maxScale = selectedArModel?.scaleOptions?.maxScale ?: 1.0f
-            }
-            /*model.localRotation =
-                Quaternion.axisAngle(Vector3(-1f, 0f, 0f), 90f)*/
-            model.setParent(anchorNode)
-            model.renderable = selectedArModel?.renderable
-            model.select()
+            setRenderableToNode()
         }
 
+    }
+
+    private fun setRenderableToNode() {
+        currentTransformableNode?.let { intermediateNode?.removeChild(it) }
+        // Create the transformable model and add it to the anchor.
+        val model = TransformableNode(arFragment.transformationSystem)
+        if (selectedArModel?.scaleOptions?.freeScaling == false) {
+            model.scaleController.minScale = selectedArModel?.scaleOptions?.minScale ?: 0.1f
+            model.scaleController.maxScale = selectedArModel?.scaleOptions?.maxScale ?: 1.0f
+        }
+        model.localScale = model.localScale.scaled(0.5f)
+        model.rotationController.isEnabled = false
+        model.localRotation =
+            Quaternion.axisAngle(Vector3(-1f, 0f, 0f), 90f)
+        model.setParent(intermediateNode)
+        model.renderable = selectedArModel?.renderable
+        model.select()
+        currentTransformableNode = model
     }
 
     private fun initModelList() {
@@ -109,12 +121,17 @@ class MainActivity : AppCompatActivity() {
                     selectedArModel = adapter.currentList.find {
                         it.resourceId.toString() == key
                     }
+                    changeWallpaper()
                 }
                 Log.d("SelectionSize", tracker.selection.size().toString())
             }
         })
 
         adapter.tracker = tracker
+    }
+
+    private fun changeWallpaper() {
+        setRenderableToNode()
     }
 
 }

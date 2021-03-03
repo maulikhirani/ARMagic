@@ -20,6 +20,7 @@
             android:id="@+id/iv_model"
             android:layout_width="80dp"
             android:layout_height="80dp"
+            android:scaleType="centerCrop"
             android:layout_margin="8dp"
             app:layout_constraintBottom_toTopOf="@+id/tv_model_name"
             app:layout_constraintEnd_toEndOf="parent"
